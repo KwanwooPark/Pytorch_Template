@@ -4,3 +4,4 @@ __pycache__/
 ILSVRC/
 Save/
 pretrained/
+.gitignore
