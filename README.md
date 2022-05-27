@@ -12,3 +12,6 @@ I hope you use this as template.
 <br/>
 <br/>
 <br/>
+
+## Structure
+![structure](./structure.png)  
