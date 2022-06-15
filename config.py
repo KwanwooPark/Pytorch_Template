@@ -39,7 +39,7 @@ class Config():
 
         """ Skill """
         self.RANDOM_SEED = -1             # random seed (if -1, mean random)
-        self.use_MixedPrecision = False   # Mixed precision scalar
+        self.use_MixedPrecision = True    # Mixed precision scalar
 
         """ Path """
         self.trained_path = None          # path for load

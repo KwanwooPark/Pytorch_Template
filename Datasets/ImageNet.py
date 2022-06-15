@@ -23,7 +23,6 @@ By Kwanwoo Park, 2022.
 import torch
 import torch.utils.data
 import torchvision.transforms as transforms
-import albumentations
 from PIL import Image
 import json
 
@@ -47,8 +46,6 @@ class Dataset(torch.utils.data.Dataset):
             self.RootFolder += "/Data/CLS-LOC/val/"
 
         self.h, self.w = size
-        # normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
-        #                                  std=[0.229, 0.224, 0.225])
 
         self.train_transforms = transforms.Compose([
             transforms.RandomResizedCrop(size),

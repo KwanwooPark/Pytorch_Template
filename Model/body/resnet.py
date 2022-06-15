@@ -29,7 +29,8 @@ class SmallBlock(nn.Module):
         self.act = nn.ReLU()
 
         if stride > 1 or Cin != Cout:
-            self.skip = nn.Conv2d(Cin, Cout, kernel_size=(1, 1), padding=(0, 0), stride=(stride, stride))
+            self.skip = nn.Sequential(nn.Conv2d(Cin, Cout, kernel_size=(1, 1), padding=(0, 0), stride=(stride, stride)),
+                                      nn.BatchNorm2d(Cout))
         else:
             self.skip = nn.Identity()
 
@@ -50,13 +51,19 @@ class LargeBlock(nn.Module):
         Cmid = int(Cout / 4)
         self.conv1 = nn.Conv2d(Cin, Cmid, kernel_size=(1, 1), padding=(0, 0))
         self.bn1 = nn.BatchNorm2d(Cmid)
+
         self.conv2 = nn.Conv2d(Cmid, Cmid, kernel_size=(3, 3), padding=(1, 1), stride=(stride, stride))
         self.bn2 = nn.BatchNorm2d(Cmid)
+
         self.conv3 = nn.Conv2d(Cmid, Cout, kernel_size=(1, 1), padding=(0, 0))
         self.bn3 = nn.BatchNorm2d(Cout)
         self.act = nn.ReLU()
 
-        self.skip = nn.Conv2d(Cin, Cout, kernel_size=(1, 1), padding=(0, 0), stride=(stride, stride))
+        if stride > 1 or Cin != Cout:
+            self.skip = nn.Sequential(nn.Conv2d(Cin, Cout, kernel_size=(1, 1), padding=(0, 0), stride=(stride, stride)),
+                                      nn.BatchNorm2d(Cout))
+        else:
+            self.skip = nn.Identity()
 
     def forward(self, x):
         out = self.conv1(x)
@@ -75,10 +82,12 @@ class LargeBlock(nn.Module):
 
 
 class ResNet(nn.Module):
-    def __init__(self, block, Num_channel, Num_blocks):
+    def __init__(self, block, Num_blocks, expansion=1):
         super().__init__()
         self.stem = Stem(64)
         self.NC = 64
+        self.Cins = Num_channel = [64, 128, 256, 512]
+        self.expansion = expansion
 
         self.stage1 = self._make_stage(block, Num_channel[0], Num_blocks[0], 1)
         self.stage2 = self._make_stage(block, Num_channel[1], Num_blocks[1], 2)
@@ -95,10 +104,10 @@ class ResNet(nn.Module):
 
     def _make_stage(self, block, channel, iter, stride):
         stage = []
-        stage.append(block(self.NC, channel, stride))
-        self.NC = channel
+        stage.append(block(self.NC, channel * self.expansion, stride))
+        self.NC = channel * self.expansion
         for _ in range(iter - 1):
-            stage.append(block(self.NC, channel, 1))
+            stage.append(block(self.NC, channel * self.expansion, 1))
 
         return nn.Sequential(*stage)
 
@@ -112,16 +121,16 @@ class ResNet(nn.Module):
 
 
 def Resnet18():
-    return ResNet(SmallBlock, [64, 128, 256, 512], [2, 2, 2, 2]), "ResNet18", [64, 128, 256, 512]
+    return ResNet(SmallBlock, [2, 2, 2, 2], 1), "ResNet18", [64, 128, 256, 512]
 
 
 def Resnet34():
-    return ResNet(SmallBlock, [64, 128, 256, 512], [3, 4, 6, 3]), "ResNet34", [64, 128, 256, 512]
+    return ResNet(SmallBlock, [3, 4, 6, 3], 1), "ResNet34", [64, 128, 256, 512]
 
 
 def Resnet50():
-    return ResNet(LargeBlock, [256, 512, 1024, 2048], [3, 4, 6, 3]), "ResNet50", [256, 512, 1024, 2048]
+    return ResNet(LargeBlock, [3, 4, 6, 3], 4), "ResNet50", [256, 512, 1024, 2048]
 
 
 def Resnet101():
-    return ResNet(LargeBlock, [256, 512, 1024, 2048], [3, 4, 23, 3]), "ResNet101", [256, 512, 1024, 2048]
+    return ResNet(LargeBlock, [3, 4, 23, 3], 4), "ResNet101", [256, 512, 1024, 2048]

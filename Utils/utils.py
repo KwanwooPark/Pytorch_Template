@@ -13,21 +13,21 @@ import shutil, os, glob
 
 def Load_StateDict(load_state_dict, model):
     model_state_dict = model.state_dict()
-    for key in load_state_dict:
+    for key in load_state_dict.copy():
         if key in model_state_dict:
             if load_state_dict[key].shape != model_state_dict[key].shape:
                 print("[USER_PRINT] Skip Params %s (Unmatched Shape)." % key)
-                load_state_dict[key] = model_state_dict[key]
+                del load_state_dict[key]
         else:
             print("[USER_PRINT] Skip Params %s (Not in Model)." % key)
+            del load_state_dict[key]
 
     for key in model_state_dict:
         if key not in load_state_dict:
             print("[USER_PRINT] There is no %s." % key)
             load_state_dict[key] = model_state_dict[key]
-    model.load_state_dict(load_state_dict, strict=False)
+    model.load_state_dict(load_state_dict)
     return model
-
 
 def Fix_Randomness(RANDOM_SEED):
     random.seed(RANDOM_SEED)
@@ -44,7 +44,7 @@ def Backup_code(save_path):
 
     folder_list = [tmp[0] for tmp in os.walk("./")]
 
-    skip_folders = [".idea", "pycache", "Save", "ILSVRC"]
+    skip_folders = [".idea", "pycache", "Save", "ILSVRC", "pretrained"]
 
     for folder in folder_list:
         breaked = False

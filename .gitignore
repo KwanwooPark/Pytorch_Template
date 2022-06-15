@@ -4,4 +4,4 @@ __pycache__/
 ILSVRC/
 Save/
 pretrained/
-.gitignore
+model.onnx

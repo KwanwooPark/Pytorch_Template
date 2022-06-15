@@ -85,9 +85,9 @@ class Trainer():
 
 
     def Load(self):
+        self.epoch, self.best_top1 = 0, 0
         if cfg.trained_path is None:
             print("[USER_PRINT] Not Load trained Model") if self.local_rank == cfg.R_GPU else False
-            self.epoch, self.best_top1 = 0, 0
         else:
             print("[USER_PRINT] Load Trained Model: %s" % cfg.trained_path) if self.local_rank == cfg.R_GPU else False
             trained_path = cfg.trained_path + "/ckpt/best_top1.pth"
@@ -103,7 +103,6 @@ class Trainer():
                 print("[USER_PRINT] Copy tensorboard files") if self.local_rank == cfg.R_GPU else False
                 for tb_file in glob.glob(cfg.trained_path + "/tb/*"):
                     shutil.copy(tb_file, self.save_path + "/tb/")
-
 
     def Save(self, save_name):
         if self.local_rank == cfg.R_GPU:
